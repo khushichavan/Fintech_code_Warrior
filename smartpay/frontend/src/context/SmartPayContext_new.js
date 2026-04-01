@@ -73,23 +73,38 @@ export const SmartPayProvider = ({ children }) => {
 
   // 🔐 LOGIN (NEW)
   const login = useCallback(async (email, password) => {
+    if (!email || !password) {
+      throw new Error('Email and password are required');
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Simple validation
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+
       // Demo login (no backend required)
       const demoUser = {
         id: Date.now(),
         name: "Student User",
         email,
+        createdAt: new Date(),
       };
 
       setUser(demoUser);
+      setError(null);
 
-      return { success: true };
+      return { success: true, user: demoUser };
     } catch (err) {
-      setError("Login failed");
-      throw err;
+      const errorMsg = err.message || 'Login failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -97,28 +112,65 @@ export const SmartPayProvider = ({ children }) => {
 
   // 📝 SIGNUP (NEW)
   const signup = useCallback(async (email, password, name) => {
+    if (!email || !password || !name) {
+      throw new Error('All fields are required');
+    }
+
     setLoading(true);
     setError(null);
 
     try {
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Validation
+      if (name.trim().length < 2) {
+        throw new Error('Name must be at least 2 characters');
+      }
+
+      if (password.length < 6) {
+        throw new Error('Password must be at least 6 characters');
+      }
+
+      if (!email.includes('@')) {
+        throw new Error('Please enter a valid email');
+      }
+
       const newUser = {
         id: Date.now(),
-        name,
+        name: name.trim(),
         email,
+        createdAt: new Date(),
       };
 
       setUser(newUser);
+      setError(null);
 
-      return { success: true };
+      return { success: true, user: newUser };
     } catch (err) {
-      setError("Signup failed");
-      throw err;
+      const errorMsg = err.message || 'Signup failed';
+      setError(errorMsg);
+      throw new Error(errorMsg);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // 💳 Send Payment
+  // � LOGOUT (NEW)
+  const logout = useCallback(async () => {
+    setUser(null);
+    setError(null);
+    setExpenses([]);
+    setWallet({
+      balance: 5000,
+      savings: 0,
+      invested: 0,
+      investmentValue: 0,
+    });
+    return { success: true };
+  }, []);
+
+  // �💳 Send Payment
   const sendPayment = useCallback((receiverName, amount) => {
     const roundedUp = roundToNearest10(amount);
     const autoSave = roundedUp - amount;
@@ -191,6 +243,7 @@ export const SmartPayProvider = ({ children }) => {
         // ✅ AUTH
         login,
         signup,
+        logout,
 
         // ✅ FEATURES
         sendPayment,

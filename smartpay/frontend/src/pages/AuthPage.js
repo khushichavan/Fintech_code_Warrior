@@ -16,30 +16,37 @@ export default function AuthPage({ onLogin, darkMode }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!email.trim() || !password.trim()) {
+      setNotification({ msg: '❌ Please enter email and password', type: 'error' });
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignup) {
         if (!name.trim()) {
-          setNotification({ msg: 'Please enter your name', type: 'error' });
+          setNotification({ msg: '❌ Please enter your name', type: 'error' });
           setLoading(false);
           return;
         }
-        await signup(email, password, name);
+        await signup(email.trim(), password, name.trim());
       } else {
-        await login(email, password);
+        await login(email.trim(), password);
       }
+      
       setNotification({
         msg: isSignup ? '✓ Account created successfully!' : '✓ Logged in successfully!',
         type: 'success',
       });
-      setTimeout(onLogin, 500);
+      
+      setTimeout(onLogin, 800);
     } catch (err) {
       setNotification({
-        msg: err.message || 'Authentication failed',
+        msg: `❌ ${err.message || 'Authentication failed'}`,
         type: 'error',
       });
-    } finally {
       setLoading(false);
     }
   };
@@ -49,16 +56,15 @@ export default function AuthPage({ onLogin, darkMode }) {
     try {
       await login('student1@example.com', 'password123');
       setNotification({
-        msg: '✓ Demo login successful!',
+        msg: '✓ Demo login successful! Entering SmartPay...',
         type: 'success',
       });
-      setTimeout(onLogin, 500);
+      setTimeout(onLogin, 800);
     } catch (err) {
       setNotification({
-        msg: 'Demo login failed',
+        msg: `❌ ${err.message || 'Demo login failed'}`,
         type: 'error',
       });
-    } finally {
       setLoading(false);
     }
   };
