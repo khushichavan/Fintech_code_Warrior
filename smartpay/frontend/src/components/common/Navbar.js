@@ -8,7 +8,7 @@ export default function Navbar({ darkMode, onToggleDarkMode, currentPage, onNavi
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'wallet', label: 'Wallet', icon: '💳' },
-    { id: 'expenses', label: 'Add Expense', icon: '💰' },
+    { id: 'expenses', label: 'Send Money', icon: '💸' },
     { id: 'insights', label: 'Insights', icon: '💡' },
     { id: 'learn', label: 'Learn', icon: '📚' },
   ];

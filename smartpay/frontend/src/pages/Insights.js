@@ -2,47 +2,55 @@ import React, { useMemo } from 'react';
 import Card from '../components/common/Card';
 import StatCard from '../components/common/StatCard';
 import { useSmartPay } from '../context/SmartPayContext_new';
-import { formatCurrency, getSpendingAdvice, getCategoryIcon } from '../utils/helpers';
+import { formatCurrency } from '../utils/helpers';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function InsightsPage({ darkMode }) {
-  const { expenses, getSpendingInsights, wallet } = useSmartPay();
+  const { expenses, wallet } = useSmartPay();
 
-  const spendingData = useMemo(() => {
-    const insights = getSpendingInsights();
-    return insights.map((item) => ({
-      name: item.category,
-      amount: parseInt(item.amount),
-      percentage: parseFloat(item.percentage),
-    }));
+  // Get payment data grouped by receiver
+  const paymentData = useMemo(() => {
+    const receivers = {};
+    expenses.forEach(exp => {
+      if (exp.receiverName) {
+        receivers[exp.receiverName] = (receivers[exp.receiverName] || 0) + 1;
+      }
+    });
+
+    return Object.entries(receivers)
+      .map(([name, count]) => ({
+        name,
+        payments: count,
+      }))
+      .sort((a, b) => b.payments - a.payments);
   }, [expenses]);
 
-  const topCategory = spendingData.length > 0 ? spendingData[0] : null;
   const totalSpent = useMemo(
-    () => expenses.reduce((sum, exp) => sum + exp.amount, 0),
+    () => expenses.reduce((sum, exp) => sum + (exp.roundedUp || exp.amount), 0),
     [expenses]
   );
   const totalSaved = useMemo(
     () => expenses.reduce((sum, exp) => sum + exp.autoSave, 0),
     [expenses]
   );
+  const savingRate = totalSpent > 0 ? ((totalSaved / totalSpent) * 100).toFixed(1) : 0;
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-dark-bg' : 'bg-gray-50'} p-4 md:p-8`}>
       <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-8`}>
-        Financial Insights
+        Payment Insights
       </h1>
 
-      {/* Spending Stats */}
+      {/* Payment Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          title="Total Spent"
+          title="Total Paid"
           value={formatCurrency(totalSpent)}
           icon="💸"
           darkMode={darkMode}
         />
         <StatCard
-          title="Total Saved"
+          title="Total Invested"
           value={formatCurrency(totalSaved)}
           subtitle="through round-ups"
           icon="💎"
@@ -50,22 +58,22 @@ export default function InsightsPage({ darkMode }) {
         />
         <StatCard
           title="Saving Rate"
-          value={`${totalSpent > 0 ? ((totalSaved / (totalSpent + totalSaved)) * 100).toFixed(1) : 0}%`}
-          subtitle="of transactions"
+          value={`${savingRate}%`}
+          subtitle="of each payment"
           icon="📊"
           darkMode={darkMode}
         />
       </div>
 
-      {/* Spending Chart */}
-      {spendingData.length > 0 && (
+      {/* Payment Chart */}
+      {paymentData.length > 0 && (
         <Card darkMode={darkMode} className="mb-8">
           <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-6`}>
-            Spending by Category
+            Payments to Recipients
           </h2>
           <div className="w-full h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={spendingData}>
+              <BarChart data={paymentData}>
                 <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? '#374151' : '#e5e7eb'} />
                 <XAxis dataKey="name" stroke={darkMode ? '#9ca3af' : '#6b7280'} />
                 <YAxis stroke={darkMode ? '#9ca3af' : '#6b7280'} />
@@ -75,52 +83,50 @@ export default function InsightsPage({ darkMode }) {
                     border: `1px solid ${darkMode ? '#374151' : '#e5e7eb'}`,
                   }}
                 />
-                <Bar dataKey="amount" fill="#10b981" />
+                <Bar dataKey="payments" fill="#10b981" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
       )}
 
-      {/* Category Breakdown */}
+      {/* Recipients Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <Card darkMode={darkMode}>
           <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
-            Category Breakdown
+            Recipients
           </h2>
           <div className="space-y-3">
-            {spendingData.length > 0 ? (
-              spendingData.map((item) => (
+            {paymentData.length > 0 ? (
+              paymentData.slice(0, 5).map((item) => (
                 <div key={item.name} className={`flex items-center justify-between`}>
                   <span className={`font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {getCategoryIcon(item.name)} {item.name}
+                    👤 {item.name}
                   </span>
-                  <span className="font-bold text-primary">{item.percentage}%</span>
+                  <span className="font-bold text-primary">{item.payments} payment{item.payments !== 1 ? 's' : ''}</span>
                 </div>
               ))
             ) : (
               <p className={`text-center py-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                No spending data yet
+                No payment data yet
               </p>
             )}
           </div>
         </Card>
 
-        {topCategory && (
-          <Card darkMode={darkMode}>
-            <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
-              💡 Smart Advice
-            </h2>
-            <div className={`${darkMode ? 'bg-dark-bg' : 'bg-blue-50'} border border-blue-200 rounded-lg p-4`}>
-              <p className={`font-medium ${darkMode ? 'text-blue-300' : 'text-blue-900'} mb-2`}>
-                {getCategoryIcon(topCategory.name)} {topCategory.name.toUpperCase()}
-              </p>
-              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
-                {getSpendingAdvice(topCategory.name, topCategory.amount)}
-              </p>
-            </div>
-          </Card>
-        )}
+        <Card darkMode={darkMode}>
+          <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+            💡 Smart Tips
+          </h2>
+          <div className={`${darkMode ? 'bg-dark-bg' : 'bg-blue-50'} border border-blue-200 rounded-lg p-4`}>
+            <p className={`font-medium ${darkMode ? 'text-blue-300' : 'text-blue-900'} mb-2`}>
+              Your Smart Payment Plan
+            </p>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'}`}>
+              You've invested <span className="font-bold text-primary">{formatCurrency(totalSaved)}</span> through round-ups! That's <span className="font-bold text-primary">{savingRate}%</span> of your total payments automatically saved for growth.
+            </p>
+          </div>
+        </Card>
       </div>
 
       {/* Recommendations */}
@@ -143,7 +149,7 @@ export default function InsightsPage({ darkMode }) {
           </li>
           <li className="flex items-start gap-3">
             <span className="text-primary font-bold">→</span>
-            <span>Reduce discretionary spending by identifying your top expense categories.</span>
+            <span>Send money regularly to build a consistent investment habit through round-ups.</span>
           </li>
         </ul>
       </Card>

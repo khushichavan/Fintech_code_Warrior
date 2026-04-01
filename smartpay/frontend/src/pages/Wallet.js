@@ -122,10 +122,10 @@ export default function WalletPage({ darkMode }) {
                 } p-4 rounded-lg`}
               >
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="text-2xl">{transaction.category === 'food' ? '🍔' : '📌'}</div>
+                  <div className="text-2xl">💸</div>
                   <div>
                     <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                      {transaction.description}
+                      {transaction.receiverName ? `Sent to ${transaction.receiverName}` : transaction.description}
                     </p>
                     <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
                       {formatDate(transaction.timestamp)}
@@ -133,8 +133,8 @@ export default function WalletPage({ darkMode }) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold text-red-500">-{formatCurrency(transaction.amount)}</p>
-                  <p className="text-sm text-green-600">+{formatCurrency(transaction.autoSave)}</p>
+                  <p className="font-bold text-red-500">-{formatCurrency(transaction.roundedUp || transaction.amount)}</p>
+                  <p className="text-sm text-green-600">+{formatCurrency(transaction.autoSave)} invested</p>
                 </div>
               </div>
             ))

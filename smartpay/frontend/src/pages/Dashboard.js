@@ -107,7 +107,7 @@ export default function DashboardPage({ darkMode }) {
       {/* Recent Transactions */}
       <Card darkMode={darkMode} className="mt-8">
         <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
-          Recent Activity
+          Recent Payments
         </h2>
 
         <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -121,26 +121,26 @@ export default function DashboardPage({ darkMode }) {
               >
                 <div>
                   <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {exp.description}
+                    {exp.receiverName ? `Paid to ${exp.receiverName}` : exp.description}
                   </p>
                   <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                    {new Date(exp.timestamp).toLocaleDateString()}
+                    {new Date(exp.timestamp).toLocaleDateString()} {new Date(exp.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
 
                 <div className="text-right">
                   <p className="font-bold text-red-500">
-                    -{formatCurrency(exp.amount)}
+                    -{formatCurrency(exp.roundedUp || exp.amount)}
                   </p>
                   <p className="text-xs text-green-500">
-                    +{formatCurrency(exp.autoSave)}
+                    +{formatCurrency(exp.autoSave)} invested
                   </p>
                 </div>
               </div>
             ))
           ) : (
             <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No transactions yet. Add an expense to get started!
+              No payments yet. Send money to get started!
             </p>
           )}
         </div>

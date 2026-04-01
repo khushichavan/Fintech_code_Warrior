@@ -91,30 +91,34 @@ export const SmartPayProvider = ({ children }) => {
     }
   }, []);
 
-  const sendPayment = useCallback(async (receiverName, amount) => {
-    if (!user) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.post(`${API_BASE_URL}/payment/send`, {
-        senderId: user.id,
-        receiverName,
-        amount: parseFloat(amount)
-      });
-      setUser(prev => ({
-        ...prev,
-        balance: response.data.newBalance,
-        savingsBalance: response.data.newSavingsBalance
-      }));
-      await fetchUserData(user.id);
-      return response.data;
-    } catch (err) {
-      setError(err.response?.data?.message || 'Payment failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [user, fetchUserData]);
+  const sendPayment = useCallback((receiverName, amount, investmentAmount) => {
+    const roundedUp = Math.ceil(amount);
+    const autoSave = investmentAmount || (roundedUp - amount);
+
+    const newTransaction = {
+      id: Date.now(),
+      description: `Payment to ${receiverName}`,
+      amount,
+      receiverName,
+      roundedUp,
+      autoSave,
+      timestamp: new Date(),
+      status: 'success',
+      type: 'payment',
+    };
+
+    setExpenses(prev => [newTransaction, ...prev]);
+
+    // Update wallet
+    setWallet(prev => ({
+      balance: Math.max(0, prev.balance - roundedUp),
+      savings: prev.savings + autoSave,
+      invested: prev.invested + autoSave,
+      investmentValue: prev.investmentValue + autoSave,
+    }));
+
+    return newTransaction;
+  }, []);
 
   // Add expense with round-up logic
   const addExpense = useCallback((description, amount, category) => {
