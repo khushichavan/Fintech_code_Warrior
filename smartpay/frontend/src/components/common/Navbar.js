@@ -7,10 +7,10 @@ export default function Navbar({ darkMode, onToggleDarkMode, currentPage, onNavi
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'wallet', label: 'Wallet', icon: '💳' },
-    { id: 'expenses', label: 'Send Money', icon: '💸' },
-    { id: 'insights', label: 'Insights', icon: '💡' },
-    { id: 'learn', label: 'Learn', icon: '📚' },
+    { id: 'wallet', label: 'Portfolio', icon: '📈' },
+    { id: 'expenses', label: 'Track Expenses', icon: '🛒' },
+    { id: 'insights', label: 'Analytics', icon: '💡' },
+    { id: 'learn', label: 'Learn & Quiz', icon: '📚' },
   ];
 
   const handleNavClick = (pageId) => {
@@ -32,9 +32,9 @@ export default function Navbar({ darkMode, onToggleDarkMode, currentPage, onNavi
             className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition"
             onClick={() => handleNavClick('dashboard')}
           >
-            <span className="text-2xl">💳</span>
+            <span className="text-2xl">🎓</span>
             <span className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-              SmartPay Pro
+              SmartPay Student
             </span>
           </div>
 

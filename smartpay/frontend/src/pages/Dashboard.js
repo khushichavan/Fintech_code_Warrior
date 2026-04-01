@@ -18,32 +18,32 @@ export default function DashboardPage({ darkMode }) {
       {/* Header */}
       <div className="mb-8">
         <h1 className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
-          Welcome to SmartPay Pro
+          Smart Wealth Builder 🎓
         </h1>
         <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          Your intelligent financial dashboard
+          Turn your campus expenses into automatic investments
         </p>
       </div>
 
       {/* Main Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <StatCard
-          title="Wallet Balance"
+          title="Current Balance"
           value={formatCurrency(wallet.balance)}
-          icon="💳"
+          icon="💵"
           darkMode={darkMode}
         />
         <StatCard
-          title="Total Savings"
+          title="Round-Ups Saved"
           value={formatCurrency(wallet.savings)}
-          subtitle="invested below ₹10"
-          icon="💰"
+          subtitle="auto-invested daily"
+          icon="🎯"
           darkMode={darkMode}
         />
         <StatCard
-          title="Investment Value"
+          title="Investment Growth"
           value={formatCurrency(wallet.investmentValue)}
-          subtitle="+5-10% simulated growth"
+          subtitle="simulated ~5% monthly"
           icon="📈"
           darkMode={darkMode}
         />
@@ -107,7 +107,7 @@ export default function DashboardPage({ darkMode }) {
       {/* Recent Transactions */}
       <Card darkMode={darkMode} className="mt-8">
         <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
-          Recent Payments
+          Recent Expenses & Round-Ups
         </h2>
 
         <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -121,7 +121,7 @@ export default function DashboardPage({ darkMode }) {
               >
                 <div>
                   <p className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                    {exp.receiverName ? `Paid to ${exp.receiverName}` : exp.description}
+                    {exp.description || (exp.receiverName ? `Paid to ${exp.receiverName}` : 'Expense')}
                   </p>
                   <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {new Date(exp.timestamp).toLocaleDateString()} {new Date(exp.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -132,15 +132,17 @@ export default function DashboardPage({ darkMode }) {
                   <p className="font-bold text-red-500">
                     -{formatCurrency(exp.roundedUp || exp.amount)}
                   </p>
-                  <p className="text-xs text-green-500">
-                    +{formatCurrency(exp.autoSave)} invested
-                  </p>
+                  {exp.autoSave > 0 && (
+                    <p className="text-xs text-green-500">
+                      +{formatCurrency(exp.autoSave)} saved 💚
+                    </p>
+                  )}
                 </div>
               </div>
             ))
           ) : (
             <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              No payments yet. Send money to get started!
+              No expenses logged yet. Start tracking to grow your investments!
             </p>
           )}
         </div>

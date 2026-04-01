@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import NotificationToast from '../components/common/NotificationToast';
-import { financialTips, quizQuestions } from '../utils/helpers';
+import { financialTips, quizQuestions, achievements } from '../utils/helpers';
 
 export default function LearnPage({ darkMode }) {
   const [selectedQuiz, setSelectedQuiz] = useState(null);
@@ -42,16 +42,45 @@ export default function LearnPage({ darkMode }) {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-dark-bg' : 'bg-gray-50'} p-4 md:p-8`}>
-      <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-8`}>
-        📚 Learn Finance
+      <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-2`}>
+        🎓 Learn & Earn (Financial Literacy)
       </h1>
+      <p className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} mb-8`}>
+        Master wealth building with gamified quizzes and bite-sized financial tips
+      </p>
 
       {!selectedQuiz ? (
         <>
+          {/* Achievement Badges */}
+          <div className="mb-12">
+            <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-6`}>
+              🏆 Your Achievements
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {achievements.map((achievement) => (
+                <div
+                  key={achievement.id}
+                  className={`p-4 rounded-lg text-center ${darkMode ? 'bg-dark-card' : 'bg-white'} shadow hover:shadow-lg transition-shadow`}
+                >
+                  <div className="text-4xl mb-2">{achievement.icon}</div>
+                  <p className={`font-bold text-xs mb-1 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                    {achievement.title}
+                  </p>
+                  <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    {achievement.description}
+                  </p>
+                  <p className={`text-xs font-bold text-primary mt-2`}>
+                    +{achievement.reward}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* Financial Tips */}
           <div className="mb-12">
             <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-6`}>
-              Financial Tips
+              💡 College Money Hacks
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {financialTips.map((tip, idx) => (
@@ -71,8 +100,11 @@ export default function LearnPage({ darkMode }) {
           {/* Quiz Section */}
           <div>
             <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-6`}>
-              Test Your Knowledge
+              📖 Financial Literacy Quizzes (Gamified)
             </h2>
+            <p className={`text-sm mb-6 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Complete quizzes to unlock achievements and XP points! 8 challenging questions about student finances, investing, and wealth building.
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {quizQuestions.map((quiz) => (
                 <Card
