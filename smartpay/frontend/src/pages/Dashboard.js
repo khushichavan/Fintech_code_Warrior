@@ -7,10 +7,11 @@ import { formatCurrency } from '../utils/helpers';
 import { FiTrendingUp, FiBarChart2 } from 'react-icons/fi';
 
 export default function DashboardPage({ darkMode }) {
-  const { wallet, expenses, getMonthlySavingsRate } = useSmartPay();
+  const { wallet, expenses, getMonthlySavingsRate, getAIInsights } = useSmartPay();
 
   const monthlySavings = getMonthlySavingsRate();
   const savingsProgress = (wallet.savings / 500) * 100; // Goal: ₹500
+  const aiInsights = getAIInsights();
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-dark-bg' : 'bg-gray-50'} p-4 md:p-8`}>
@@ -69,6 +70,47 @@ export default function DashboardPage({ darkMode }) {
           towards your ₹500 savings goal!
         </p>
       </Card>
+
+      {/* AI Financial Insights - IMPORTANT */}
+      {aiInsights.length > 0 && (
+        <div className="mb-8">
+          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+            🤖 AI Financial Insights
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {aiInsights.map((insight) => (
+              <div
+                key={insight.id}
+                className={`p-4 rounded-lg border-l-4 transition-all ${
+                  insight.type === 'success'
+                    ? darkMode
+                      ? 'bg-dark-input border-l-green-500'
+                      : 'bg-green-50 border-l-green-500'
+                    : insight.type === 'warning'
+                    ? darkMode
+                      ? 'bg-dark-input border-l-yellow-500'
+                      : 'bg-yellow-50 border-l-yellow-500'
+                    : darkMode
+                    ? 'bg-dark-input border-l-blue-500'
+                    : 'bg-blue-50 border-l-blue-500'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">{insight.icon}</span>
+                  <div className="flex-1">
+                    <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {insight.title}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'} mt-1`}>
+                      {insight.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

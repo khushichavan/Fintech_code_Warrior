@@ -6,7 +6,8 @@ import { formatCurrency } from '../utils/helpers';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function InsightsPage({ darkMode }) {
-  const { expenses, wallet } = useSmartPay();
+  const { expenses, wallet, getAIInsights } = useSmartPay();
+  const aiInsights = getAIInsights();
 
   // Get expense data grouped by category
   const categoryData = useMemo(() => {
@@ -71,7 +72,46 @@ export default function InsightsPage({ darkMode }) {
         />
       </div>
 
-      {/* Spending Chart */}
+      {/* AI-Powered Financial Insights - IMPORTANT */}
+      {aiInsights.length > 0 && (
+        <div className="mb-8">
+          <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-4`}>
+            🤖 Smart Financial Recommendations
+          </h2>
+          <div className="grid grid-cols-1 gap-4">
+            {aiInsights.map((insight) => (
+              <div
+                key={insight.id}
+                className={`p-4 rounded-lg border-l-4 transition-all hover:shadow-md ${
+                  insight.type === 'success'
+                    ? darkMode
+                      ? 'bg-dark-input border-l-green-500'
+                      : 'bg-green-50 border-l-green-500'
+                    : insight.type === 'warning'
+                    ? darkMode
+                      ? 'bg-dark-input border-l-yellow-500'
+                      : 'bg-yellow-50 border-l-yellow-500'
+                    : darkMode
+                    ? 'bg-dark-input border-l-blue-500'
+                    : 'bg-blue-50 border-l-blue-500'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">{insight.icon}</span>
+                  <div className="flex-1">
+                    <p className={`font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {insight.title}
+                    </p>
+                    <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-700'} mt-1`}>
+                      {insight.description}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {categoryData.length > 0 && (
         <Card darkMode={darkMode} className="mb-8">
           <h2 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'} mb-6`}>

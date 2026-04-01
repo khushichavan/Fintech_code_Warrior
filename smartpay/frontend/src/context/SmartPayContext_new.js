@@ -5,15 +5,51 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 const SmartPayContext = createContext();
 
+// ✅ Round to nearest ₹10
+const roundToNearest10 = (amount) => {
+  return Math.ceil(amount / 10) * 10;
+};
+
+// ✅ AI Insights
+const generateAIInsights = (expenses, wallet) => {
+  if (expenses.length === 0) return [];
+
+  const insights = [];
+
+  const totalSaved = expenses.reduce((sum, exp) => sum + (exp.autoSave || 0), 0);
+
+  if (totalSaved > 0) {
+    insights.push({
+      id: 'roundup',
+      type: 'success',
+      title: '💚 Smart Saving',
+      description: `You saved ₹${totalSaved.toFixed(0)} automatically!`,
+    });
+  }
+
+  if (wallet.invested > 0) {
+    insights.push({
+      id: 'growth',
+      type: 'info',
+      title: '📈 Investment Growth',
+      description: `Your investments are growing steadily.`,
+    });
+  }
+
+  return insights;
+};
+
+// ✅ MAIN PROVIDER
 export const SmartPayProvider = ({ children }) => {
+
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const [transactions, setTransactions] = useState([]);
   const [insights, setInsights] = useState([]);
   const [savings, setSavings] = useState(null);
 
-  // Wallet System
   const [wallet, setWallet] = useState({
     balance: 5000,
     savings: 0,
@@ -23,108 +59,95 @@ export const SmartPayProvider = ({ children }) => {
 
   const [expenses, setExpenses] = useState([]);
 
-  // Investment growth simulation
+  // 📈 Investment Growth
   useEffect(() => {
-    const growthInterval = setInterval(() => {
+    const interval = setInterval(() => {
       setWallet(prev => ({
         ...prev,
-        investmentValue: Number((prev.investmentValue * 1.001).toFixed(2)), // 0.1% daily growth
+        investmentValue: Number((prev.investmentValue * 1.001).toFixed(2)),
       }));
-    }, 60000); // Every minute
+    }, 60000);
 
-    return () => clearInterval(growthInterval);
+    return () => clearInterval(interval);
   }, []);
 
+  // 🔐 LOGIN (NEW)
   const login = useCallback(async (email, password) => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      // Demo login (no backend required)
+      const demoUser = {
+        id: Date.now(),
+        name: "Student User",
         email,
-        password
-      });
-      setUser(response.data.user);
-      await fetchUserData(response.data.user.id);
-      return response.data;
+      };
+
+      setUser(demoUser);
+
+      return { success: true };
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed');
+      setError("Login failed");
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // 📝 SIGNUP (NEW)
   const signup = useCallback(async (email, password, name) => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await axios.post(`${API_BASE_URL}/auth/signup`, {
+      const newUser = {
+        id: Date.now(),
+        name,
         email,
-        password,
-        name
-      });
-      setUser(response.data.user);
-      await fetchUserData(response.data.user.id);
-      return response.data;
+      };
+
+      setUser(newUser);
+
+      return { success: true };
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed');
+      setError("Signup failed");
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const fetchUserData = useCallback(async (userId) => {
-    try {
-      const [userRes, transRes, insRes, savRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/user/${userId}`),
-        axios.get(`${API_BASE_URL}/transactions/${userId}`),
-        axios.get(`${API_BASE_URL}/insights/${userId}`),
-        axios.get(`${API_BASE_URL}/savings/${userId}`)
-      ]);
-      setUser(userRes.data);
-      setTransactions(transRes.data.transactions);
-      setInsights(insRes.data.insights);
-      setSavings(savRes.data);
-    } catch (err) {
-      setError('Failed to fetch user data');
-    }
-  }, []);
-
-  const sendPayment = useCallback((receiverName, amount, investmentAmount) => {
-    const roundedUp = Math.ceil(amount);
-    const autoSave = investmentAmount || (roundedUp - amount);
+  // 💳 Send Payment
+  const sendPayment = useCallback((receiverName, amount) => {
+    const roundedUp = roundToNearest10(amount);
+    const autoSave = roundedUp - amount;
 
     const newTransaction = {
       id: Date.now(),
       description: `Payment to ${receiverName}`,
       amount,
-      receiverName,
       roundedUp,
       autoSave,
       timestamp: new Date(),
-      status: 'success',
-      type: 'payment',
     };
 
     setExpenses(prev => [newTransaction, ...prev]);
 
-    // Update wallet
     setWallet(prev => ({
-      balance: Math.max(0, prev.balance - roundedUp),
+      ...prev,
+      balance: prev.balance - roundedUp,
       savings: prev.savings + autoSave,
       invested: prev.invested + autoSave,
       investmentValue: prev.investmentValue + autoSave,
     }));
 
-    return newTransaction;
   }, []);
 
-  // Add expense with round-up logic
+  // ➕ Add Expense
   const addExpense = useCallback((description, amount, category) => {
-    const roundedUp = Math.ceil(amount);
+    const roundedUp = roundToNearest10(amount);
     const autoSave = roundedUp - amount;
-    const investThreshold = 10; // Invest savings above ₹10
 
     const newExpense = {
       id: Date.now(),
@@ -134,57 +157,27 @@ export const SmartPayProvider = ({ children }) => {
       roundedUp,
       autoSave,
       timestamp: new Date(),
-      status: 'success',
     };
 
     setExpenses(prev => [newExpense, ...prev]);
 
-    // Update wallet
     setWallet(prev => ({
-      balance: Math.max(0, prev.balance - roundedUp),
+      ...prev,
+      balance: prev.balance - roundedUp,
       savings: prev.savings + autoSave,
-      invested: prev.invested + (autoSave >= investThreshold ? autoSave : 0),
-      investmentValue: prev.investmentValue + (autoSave >= investThreshold ? autoSave : 0),
+      invested: prev.invested + autoSave,
+      investmentValue: prev.investmentValue + autoSave,
     }));
 
-    return newExpense;
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setTransactions([]);
-    setInsights([]);
-    setSavings(null);
-    setError(null);
-    setExpenses([]);
-  }, []);
-
-  // Calculate spending insights
-  const getSpendingInsights = useCallback(() => {
-    if (expenses.length === 0) return [];
-
-    const categorySpending = {};
-    expenses.forEach(exp => {
-      categorySpending[exp.category] = (categorySpending[exp.category] || 0) + exp.amount;
-    });
-
-    const totalSpent = Object.values(categorySpending).reduce((a, b) => a + b, 0);
-
-    return Object.entries(categorySpending)
-      .map(([category, amount]) => ({
-        category,
-        amount,
-        percentage: ((amount / totalSpent) * 100).toFixed(1),
-      }))
-      .sort((a, b) => b.amount - a.amount);
-  }, [expenses]);
-
-  // Get monthly savings rate
   const getMonthlySavingsRate = useCallback(() => {
-    if (expenses.length === 0) return 0;
-    const totalSaved = expenses.reduce((sum, exp) => sum + exp.autoSave, 0);
-    return totalSaved;
+    return expenses.reduce((sum, exp) => sum + (exp.autoSave || 0), 0);
   }, [expenses]);
+
+  const getAIInsights = useCallback(() => {
+    return generateAIInsights(expenses, wallet);
+  }, [expenses, wallet]);
 
   return (
     <SmartPayContext.Provider
@@ -192,19 +185,18 @@ export const SmartPayProvider = ({ children }) => {
         user,
         loading,
         error,
-        transactions,
-        insights,
-        savings,
         wallet,
         expenses,
+
+        // ✅ AUTH
         login,
         signup,
+
+        // ✅ FEATURES
         sendPayment,
-        logout,
-        fetchUserData,
         addExpense,
-        getSpendingInsights,
         getMonthlySavingsRate,
+        getAIInsights,
       }}
     >
       {children}
@@ -212,6 +204,7 @@ export const SmartPayProvider = ({ children }) => {
   );
 };
 
+// ✅ Hook
 export const useSmartPay = () => {
   const context = useContext(SmartPayContext);
   if (!context) {
